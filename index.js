@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const app = express();
 
@@ -49,6 +49,14 @@ async function run() {
         res.status(500).send({ message: 'Failed to fetch top-rated movies' });
       }
     });
+
+    app.get('/movies/:id', async (req, res) =>{
+      const id = req.params.id;
+      
+      const query ={_id: new ObjectId(id) };
+      const movie = await movieCollection.findOne(query);
+      res.send(movie);
+    })
 
     app.post("/movies", async (req, res) => {
       const newMovie = req.body;
