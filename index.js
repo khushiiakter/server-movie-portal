@@ -29,6 +29,8 @@ async function run() {
     // const database = client.db("insertDB");
     // const haiku = database.collection("haiku");
     const movieCollection = client.db("movieDB").collection("movie");
+    const favoritesCollection = client.db("movieDB").collection("favorites");
+
 
     app.get("/movies", async (req, res) => {
       const cursor = movieCollection.find();
@@ -56,14 +58,62 @@ async function run() {
       const query ={_id: new ObjectId(id) };
       const movie = await movieCollection.findOne(query);
       res.send(movie);
-    })
+    });
 
+    app.get('/favorites', async (req, res) =>{
+      const {email} = req.query;
+     
+      const result = await favoritesCollection.find({userEmail: email}).toArray();
+      res.send(result);
+       
+     
+    });
+// add new movie
     app.post("/movies", async (req, res) => {
       const newMovie = req.body;
       console.log("Adding new movie", newMovie);
       const result = await movieCollection.insertOne(newMovie);
       res.send(result);
     });
+    app.put("/movies/:id", async (req, res) => {
+      const { id } = req.params;
+      const updatedMovie = req.body;
+    
+      try {
+        const result = await movieCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updatedMovie }
+        );
+        res.send({ modifiedCount: result.modifiedCount})
+        
+      } catch (error) {
+        console.error("Error updating movie:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+      }
+    });
+    
+
+    app.delete('/movies/:id', async (req, res) => {
+      
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await movieCollection.deleteOne(query);
+      res.send(result);
+  });
+
+    app.post("/favorites", async (req, res) => {
+      const favorite = req.body;
+      const result = await favoritesCollection.insertOne(favorite);
+      res.send(result);
+     
+
+    });
+    app.delete('/favorites/:id', async (req, res) => {
+      const {id} = req.params;
+      const result = await favoritesCollection.deleteOne({_id: new ObjectId(id)});
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
