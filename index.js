@@ -97,7 +97,7 @@ async function run() {
       }
     });
 
-// delete movie
+// delete movie by id
 
     app.delete("/movies/:id", async (req, res) => {
       const id = req.params.id;
